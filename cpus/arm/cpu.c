@@ -825,7 +825,10 @@ static uint32_t rotated_immediate(uint32_t val)
 {
   uint32_t i,a;
 
-  for (i=0; i<32; i+=2) {
+  if (a <= 0xff)
+    return a;
+
+  for (i=2; i<32; i+=2) {
     if ((a = val<<i | val>>(32-i)) <= 0xff)
       return (i<<7) | a;
   }
