@@ -282,8 +282,10 @@ dblock *parse_string(char **str,char delim,int width)
 
   /* how many bytes do we need for the string? */
   skip_string(s,delim,&size);
-  if (size == 1)
-    return NULL; /* it's just one char, so use eval_expr() on it */
+
+  // removed by Luna because this prevents single-char strings from being accepted
+  //if (size == 1)
+  //  return NULL; /* it's just one char, so use eval_expr() on it */
 
   db = new_dblock();
   db->size = size * (size_t)(width>>3);
