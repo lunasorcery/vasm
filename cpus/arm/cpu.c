@@ -501,10 +501,10 @@ int parse_operand(char *p,int len,operand *op,int optype)
         name += 5;
         while (name < p) {
           switch (tolower((unsigned char)*name++)) {
-            case 'f': fields |= 1; break;
-            case 's': fields |= 2; break;
-            case 'x': fields |= 4; break;
-            case 'c': fields |= 8; break;
+            case 'f': fields |= 8; break;
+            case 's': fields |= 4; break;
+            case 'x': fields |= 2; break;
+            case 'c': fields |= 1; break;
             default: return PO_NOMATCH;
           }
         }
