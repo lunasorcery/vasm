@@ -177,6 +177,10 @@ static expr *primary_expr(void)
       ierror(0);
       break;
     }
+    if(s==m){
+      general_error(75,base);
+      goto dummyexp;
+    }
     s=const_suffix(start,s);
     EXPSKIP();
     new=new_expr();
@@ -251,6 +255,7 @@ static expr *primary_expr(void)
     return new;
   }
   general_error(9);
+dummyexp:
   new=new_expr();
   new->type=NUM;
   new->c.val=-1;

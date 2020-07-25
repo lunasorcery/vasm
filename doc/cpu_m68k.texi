@@ -381,7 +381,7 @@ a value defined by the following bits:
 
 The following symbols are defined for compatibility with other assemblers,
 so their function is not described here.
-@table asis
+@table @asis
 @item Devpac
       @code{__G2}, @code{_LK}
 @item PhxAss
@@ -1006,6 +1006,7 @@ and @code{NEG.L Dn} (@option{-opt-mul} and @option{-opt-speed}).
 
 @itemize @minus
 
+@item Packed Decimal floating point constants are not yet supported!
 @item In some rare cases, mainly by stupid input sources, the optimizer
 might oscillate forever between two states. When this happens, assembly
 will be terminated automatically after some time.

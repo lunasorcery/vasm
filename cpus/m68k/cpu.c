@@ -25,7 +25,7 @@ struct cpu_models models[] = {
 int model_cnt = sizeof(models)/sizeof(models[0]);
 
 
-char *cpu_copyright="vasm M68k/CPU32/ColdFire cpu backend 2.3k (c) 2002-2020 Frank Wille";
+char *cpu_copyright="vasm M68k/CPU32/ColdFire cpu backend 2.3l (c) 2002-2020 Frank Wille";
 char *cpuname = "M68k";
 int bitsperbyte = 8;
 int bytespertaddr = 4;
@@ -1277,8 +1277,10 @@ static void set_index(operand *op,short i)
     op->flags |= FL_UsesFormat;
 
     if (REGisZero(i)) {
-      op->format |= FW_FullFormat | FW_IndexSuppress;
       op->flags |= FL_020up;
+      op->format |= FW_FullFormat | FW_IndexSuppress;
+      /* clear Postindexed, even when zero-reg. was specified as post-index */
+      op->format &= ~FW_Postindexed;
     }
     else if (s) {
       /* ColdFire allows scale factors *2 and *4 (*8 when FPU is present),

@@ -11,7 +11,7 @@ mnemonic mnemonics[] = {
 
 int mnemonic_cnt=sizeof(mnemonics)/sizeof(mnemonics[0]);
 
-char *cpu_copyright="vasm 6502 cpu backend 0.8c (c) 2002,2006,2008-2012,2014-2020 Frank Wille";
+char *cpu_copyright="vasm 6502 cpu backend 0.8d (c) 2002,2006,2008-2012,2014-2020 Frank Wille";
 char *cpuname = "6502";
 int bitsperbyte = 8;
 int bytespertaddr = 2;
@@ -182,25 +182,30 @@ char *parse_cpu_special(char *start)
 }
 
 
-static instruction *copy_instruction(instruction *ip)
-/* copy an instruction and its operands */
+int parse_cpu_label(char *labname,char **start)
+/* parse cpu-specific directives following a label field,
+   return zero when no valid directive was recognized */
 {
-  static instruction newip;
-  static operand newop[MAX_OPERANDS];
-  int i;
+  char *dir=*start,*s=*start;
 
-  newip.code = ip->code;
+  if (ISIDSTART(*s)) {
+    s++;
+    while (ISIDCHAR(*s))
+      s++;
 
-  for (i=0; i<MAX_OPERANDS; i++) {
-    if (ip->op[i] != NULL) {
-      newip.op[i] = &newop[i];
-      *newip.op[i] = *ip->op[i];
+    if (s-dir==3 && !strnicmp(dir,"ezp",3)) {
+      /* label EZP <expression> */
+      symbol *sym;
+
+      s = skip(s);
+      sym = new_equate(labname,parse_expr_tmplab(&s));
+      sym->flags |= ZPAGESYM;
+      eol(s);
+      *start = skip_line(s);
+      return 1;
     }
-    else
-      newip.op[i] = NULL;
   }
-
-  return &newip;
+  return 0;
 }
 
 
@@ -312,7 +317,7 @@ size_t instruction_size(instruction *ip,section *sec,taddr pc)
     ip->op[i] = NULL;
   }
 
-  ipcopy = copy_instruction(ip);
+  ipcopy = copy_inst(ip);
   optimize_instruction(ipcopy,sec,pc,0);
   return get_inst_size(ipcopy);
 }
@@ -383,6 +388,8 @@ dblock *eval_instruction(instruction *ip,section *sec,taddr pc)
       optype = (int)op->type;
       if (op->value != NULL) {
         if (!eval_expr(op->value,&val,sec,pc)) {
+          taddr add = 0;
+
           modifier = 0;
           if (optype!=WBIT && find_base(op->value,&base,sec,pc) == BASE_OK) {
             if (optype==REL && !is_pc_reloc(base,sec)) {
@@ -418,13 +425,14 @@ dblock *eval_instruction(instruction *ip,section *sec,taddr pc)
                 case REL:
                   type = REL_PC;
                   size = 8;
+                  add = -1;  /* 6502 addend correction */
                   break;
                 default:
                   ierror(0);
                   break;
               }
 
-              rl = add_extnreloc(&db->relocs,base,val,type,0,size,offs);
+              rl = add_extnreloc(&db->relocs,base,val+add,type,0,size,offs);
               switch (modifier) {
                 case LOBYTE:
                   if (rl)

@@ -10,7 +10,7 @@
 #include "stabs.h"
 #include "dwarf.h"
 
-#define _VER "vasm 1.8h"
+#define _VER "vasm 1.8i"
 char *copyright = _VER " (c) in 2002-2020 Volker Barthelmann";
 #ifdef AMIGA
 static const char *_ver = "$VER: " _VER " " __AMIGADATE__ "\r\n";
@@ -619,6 +619,8 @@ static int init_output(char *fmt)
     exec_out=1;  /* executable format */
     return init_output_xfile(&output_copyright,&write_object,&output_args);
   }
+  if(!strcmp(fmt,"cdef"))
+    return init_output_cdef(&output_copyright,&write_object,&output_args);
   return 0;
 }
 
@@ -641,7 +643,7 @@ static int init_main(void)
     if(mnemohash->collisions)
       printf("*** %d mnemonic collisions!!\n",mnemohash->collisions);
   }
-  new_include_path("");  /* index 0: current work directory */
+  new_include_path(emptystr);  /* index 0: current work directory */
   taddrmask=MAKEMASK(bytespertaddr<<3);
   taddrmax=((utaddr)~0)>>1;
   taddrmin=~taddrmax;
@@ -662,7 +664,7 @@ static void include_main_source(void)
     if ((filepart = get_filepart(inname)) != inname) {
       /* main source is not in current dir., set compile-directory path */
       compile_dir = cnvstr(inname,filepart-inname);
-      new_include_path(compile_dir);
+      main_include_path(compile_dir);
     }
     else
       compile_dir = NULL;
@@ -727,6 +729,8 @@ int main(int argc,char **argv)
     general_error(10,"main");
   if(!init_symbol())
     general_error(10,"symbol");
+  if(!init_osdep())
+    general_error(10,"osdep");
   if(verbose)
     printf("%s\n%s\n%s\n%s\n",copyright,cpu_copyright,syntax_copyright,output_copyright);
   for(i=1;i<argc;i++){
@@ -830,6 +834,12 @@ int main(int argc,char **argv)
     }
     if(!strcmp("-nocase",argv[i])){
       nocase=1;
+      continue;
+    }
+    if(!strncmp("-nomsg=",argv[i],7)){
+      int mno;
+      sscanf(argv[i]+7,"%i",&mno);
+      disable_message(mno);
       continue;
     }
     if(!strcmp("-nosym",argv[i])){
@@ -1024,7 +1034,7 @@ FILE *locate_file(char *filename,char *mode,struct include_path **ipath_used)
   else {
     /* locate file name in all known include paths */
     for (ipath=first_incpath; ipath; ipath=ipath->next) {
-      if ((f = open_path("",ipath->path,filename,mode)) == NULL) {
+      if ((f = open_path(emptystr,ipath->path,filename,mode)) == NULL) {
         if (compile_dir && !abs_path(ipath->path) &&
             (f = open_path(compile_dir,ipath->path,filename,mode)))
           ipath->compdir_based = 1;
@@ -1413,15 +1423,31 @@ static struct include_path *new_ipath_node(char *pathname)
   return new;
 }
 
-struct include_path *new_include_path(char *pathname)
+static char *make_canonical_path(char *pathname)
 {
-  struct include_path *ipath;
   char *newpath = convert_path(pathname);
 
   pathname = append_path_delimiter(newpath);  /* append '/', when needed */
   myfree(newpath);
+  return pathname;
+}
+
+/* add the main source include path, which is searched first */
+void main_include_path(char *pathname)
+{
+  struct include_path *ipath;
+
+  ipath = new_ipath_node(make_canonical_path(pathname));
+  ipath->next = first_incpath;
+  first_incpath = ipath;
+}
+
+struct include_path *new_include_path(char *pathname)
+{
+  struct include_path *ipath;
 
   /* check if path already exists, otherwise append new node */
+  pathname = make_canonical_path(pathname);
   for (ipath=first_incpath; ipath; ipath=ipath->next) {
     if (!filenamecmp(pathname,ipath->path)) {
       myfree(pathname);

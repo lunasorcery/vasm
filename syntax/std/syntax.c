@@ -25,7 +25,7 @@ static char bssname[]=".bss",bssattr[]="aurw";
 static char sbssname[]=".sbss",sbssattr[]="aurw";
 static char tocdname[]=".tocd",tocdattr[]="adrw";
 
-#if defined(VASM_CPU_C16X) || defined(VASM_CPU_M68K) || defined(VASM_CPU_650X) || defined(VASM_CPU_ARM) || defined(VASM_CPU_Z80)|| defined(VASM_CPU_6800) || defined(VASM_CPU_JAGRISC) || defined(VASM_CPU_QNICE)
+#if defined(VASM_CPU_C16X) || defined(VASM_CPU_M68K) || defined(VASM_CPU_650X) || defined(VASM_CPU_ARM) || defined(VASM_CPU_Z80)|| defined(VASM_CPU_6800) || defined(VASM_CPU_JAGRISC) || defined(VASM_CPU_QNICE) || defined(VASM_CPU_6809)
 char commentchar=';';
 #else
 char commentchar='#';

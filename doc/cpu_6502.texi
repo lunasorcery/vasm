@@ -27,7 +27,7 @@ This module provides the following additional options:
         Allow 'illegal' 6502 instructions to be recognized.
     @item -opt-branch
         Enables 'optimization' of B<cc> branches into
-        "B<!cc> *+3 ; JMP label" sequences when necessary.
+        "B<!cc> *+5 ; JMP label" sequences when necessary.
     @item -wdc02
         Recognize all 65C02 instructions and the WDC65C02 extensions
         (RMB,SMB,BBR,BBS,STP,WAI).
@@ -81,6 +81,11 @@ This backend extends the selected syntax module by the following
 directives:
 
 @table @code
+@item <symbol> ezp <expr>
+      Works exactly like the @code{equ} directive, but marks <symbol>
+      as a zero page symbol and use zero page addressing whenever
+      <symbol> is used in a memory addressing mode.
+
 @item setdp <expr>
       Set the current base address of the zero/direct page for
       optimizations from absolute to zero-page addressing modes.
@@ -98,7 +103,7 @@ This backend performs the following operand optimizations:
 @itemize @minus
 
 @item Branches, where the destination is out of range, are translated
- into @code{B<!cc> *+3} and an absolute @code{JMP} instruction.
+ into @code{B<!cc> *+5} and an absolute @code{JMP} instruction.
 
 @end itemize
 

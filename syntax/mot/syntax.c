@@ -12,7 +12,7 @@
    be provided by the main module.
 */
 
-char *syntax_copyright="vasm motorola syntax module 3.14 (c) 2002-2020 Frank Wille";
+char *syntax_copyright="vasm motorola syntax module 3.14a (c) 2002-2020 Frank Wille";
 hashtable *dirhash;
 char commentchar = ';';
 
@@ -2500,9 +2500,12 @@ char *get_local_label(char **start)
   if (p!=NULL && *p=='\\' && ISIDSTART(*s) && *s!=local_char && *(p-1)!='$') {
     /* skip local part of global\local label */
     s = p + 1;
-    p = skip_local(s);
-    name = make_local_label(*start,(s-1)-*start,s,*(p-1)=='$'?(p-1)-s:p-s);
-    *start = skip(p);
+    if (p = skip_local(s)) {
+      name = make_local_label(*start,(s-1)-*start,s,*(p-1)=='$'?(p-1)-s:p-s);
+      *start = skip(p);
+    }
+    else
+      return NULL;
   }
   else if (p!=NULL && p>(s+1)) {  /* identifier with at least 2 characters */
     if (*s == local_char) {
@@ -2590,6 +2593,7 @@ int syntax_args(char *p)
     devpac_compat = 1;
     align_data = 1;
     esc_sequences = 0;
+    dot_idchar = 1;
     allmp = 1;
     warn_unalloc_ini_dat = 1;
     return 1;
